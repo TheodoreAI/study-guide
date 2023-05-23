@@ -1,0 +1,2 @@
+"use strict";(self["webpackChunkrally_racing"]=self["webpackChunkrally_racing"]||[]).push([[443],{381:function(n,a,r){r.r(a),r.d(a,{default:function(){return f}});var u=r(252);const t={class:"about"},c=(0,u._)("h1",null,"This is an about page",-1),e=[c];function s(n,a){return(0,u.wg)(),(0,u.iD)("div",t,e)}var i=r(744);const l={},o=(0,i.Z)(l,[["render",s]]);var f=o}}]);
+//# sourceMappingURL=about.96a6aea4.js.map
