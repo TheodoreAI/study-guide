@@ -1,4 +1,4 @@
-# rally-racing
+# study-guide
 
 ## Project setup
 ```
