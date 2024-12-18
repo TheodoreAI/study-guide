@@ -1,7 +1,7 @@
 <template>
   <div class="container-fluid">
     <div class="row justify-content-between">
-      <div class="col-6 text-center">
+      <div v-if="!quizStarted" class="col-6 text-center">
         <div class="border border-dark rounded-2 mb-2 text-start p-3">
           <div class="d-flex justify-content-between">
             <button
@@ -41,15 +41,15 @@
               </ul>
             </nav>
           </div>
-          <h3 class="fw-bold my-3">Questions and Answers</h3>
+          <h3 class="fw-bold my-3">Concepts and Definitions</h3>
           <p class="fst-italic">
-            Here you can input the questions and answers for the study guide.
-            You can add as many questions as you like.
+            Here you can input the concepts and definitions for the study guide.
+            You can add as many as you like.
           </p>
           <form>
             <div
               class="mb-3"
-              v-for="(q, i) in chapters[currentChapter].questionsAndAnswers"
+              v-for="(q, i) in chapters[currentChapter].conceptsAndDefinitions"
               :key="q.id"
             >
               <div class="row fw-bold">
@@ -66,7 +66,7 @@
                   />
                 </div>
                 <div class="col align-self-center">
-                  <label :for="q.id" class="form-label fs-5"> Answer</label>
+                  <label :for="q.id" class="form-label fs-5">Definition</label>
                   <textarea
                     type="text"
                     class="form-control"
@@ -201,14 +201,14 @@
           {{ selectedMethod }}
         </h3>
         <div v-if="selectedMethod === 'Drag and Drop'">
-          <p class="fst-italic">Drag and Drop Questions and Answers</p>
+          <p class="fst-italic">Drag and Drop Concepts and Definitions</p>
           <div class="d-flex justify-content-end fw-bold">
             {{ numSortedCorrectly }} / {{ numToSort }}
           </div>
           <div class="row">
             <div class="col">
               <div
-                v-for="(question, index) in quizQuestions"
+                v-for="(question, index) in quizConcepts"
                 :key="index"
                 class="card draggable border border-dark rounded-2 p-2 my-2"
                 draggable="true"
@@ -219,7 +219,7 @@
             </div>
             <div class="col">
               <div
-                v-for="(answer, index) in quizAnswers"
+                v-for="(answer, index) in quizDefinitions"
                 :key="index"
                 class="card droppable border border-dark rounded-2 p-2 my-2"
                 @dragover="onDragOver($event)"
@@ -251,8 +251,9 @@ export default {
   name: "StudyGuideHomeView",
   data() {
     return {
-      quizAnswers: [], //* this will be the randomized answers
-      quizQuestions: [], //* this will be the randomized questions
+      quizStarted: false,
+      quizDefinitions: [], //* this will be the randomized definitions
+      quizConcepts: [], //* this will be the randomized concepts
       methodsAvailable: [
         { id: "flashCards", name: "Flash Cards", selected: false },
         { id: "multipleChoice", name: "Multiple Choice", selected: false },
@@ -262,7 +263,7 @@ export default {
         {
           id: 1,
           name: "Chapter 1",
-          questionsAndAnswers: [
+          conceptsAndDefinitions: [
             {
               id: 0,
               question: "Programming Language",
@@ -303,8 +304,8 @@ export default {
             },
           ],
         },
-        { id: 2, name: "Chapter 2", questionsAndAnswers: [] },
-        { id: 3, name: "Chapter 3", questionsAndAnswers: [] },
+        { id: 2, name: "Chapter 2", conceptsAndDefinitions: [] },
+        { id: 3, name: "Chapter 3", conceptsAndDefinitions: [] },
       ],
       signalsAvailable: [
         {
@@ -358,8 +359,8 @@ export default {
       });
     },
     addQuestion() {
-      this.chapters[this.currentChapter].questionsAndAnswers.push({
-        id: this.chapters[this.currentChapter].questionsAndAnswers.length,
+      this.chapters[this.currentChapter].conceptsAndDefinitions.push({
+        id: this.chapters[this.currentChapter].conceptsAndDefinitions.length,
         question: "",
         answer: "",
         method: this.selectedMethod,
@@ -374,30 +375,35 @@ export default {
       //* create a timer for the quiz
       //* create a score for the quiz
       const newOrder = JSON.parse(
-        JSON.stringify(this.chapters[this.currentChapter].questionsAndAnswers)
+        JSON.stringify(
+          this.chapters[this.currentChapter].conceptsAndDefinitions
+        )
       ).sort(() => Math.random() - 0.5);
-      this.quizQuestions = newOrder;
-      this.numToSort = this.quizAnswers.length;
+      this.quizConcepts = newOrder;
+      this.numToSort = this.quizDefinitions.length;
     },
     startQuiz() {
       //* randomize the questions
       //* create a timer for the quiz
       //* create a score for the quiz
-      [this.quizAnswers, this.quizQuestions] = this.randomizeAndReturn();
-      this.numToSort = this.quizAnswers.length;
+      [this.quizDefinitions, this.quizConcepts] = this.randomizeAndReturn();
+      this.numToSort = this.quizDefinitions.length;
       this.startTimer(this.minutes);
+      this.quizStarted = true;
     },
     randomizeAndReturn() {
-      let questionsAndAnswers = [];
-      this.chapters[this.currentChapter].questionsAndAnswers.forEach((qa) => {
-        questionsAndAnswers.push(qa);
-      });
+      let conceptsAndDefinitions = [];
+      this.chapters[this.currentChapter].conceptsAndDefinitions.forEach(
+        (qa) => {
+          conceptsAndDefinitions.push(qa);
+        }
+      );
 
       //* shuffle the answers
-      let randomizedAnswers = this.shuffle([...questionsAndAnswers]); //* create a shallow copy to avoid mutating the original array
+      let randomizedAnswers = this.shuffle([...conceptsAndDefinitions]); //* create a shallow copy to avoid mutating the original array
 
       //* shuffle the questions
-      let randomizedQuestions = this.shuffle([...questionsAndAnswers]);
+      let randomizedQuestions = this.shuffle([...conceptsAndDefinitions]);
       return [randomizedAnswers, randomizedQuestions];
     },
     shuffle(array) {
@@ -411,6 +417,7 @@ export default {
     },
     stopQuiz() {
       this.startTimer(0);
+      this.quizStarted = false;
     },
     startTimer(minutes) {
       if (minutes === 0) {
@@ -450,7 +457,7 @@ export default {
       this.chapters.push({
         id: this.chapters.length + 1,
         name: `Chapter ${this.chapters.length + 1}`,
-        questionsAndAnswers: [],
+        conceptsAndDefinitions: [],
       });
     },
     //* https://www.w3schools.com/html/html5_draganddrop.asp
@@ -469,8 +476,8 @@ export default {
         alert("Correct match!");
         this.numSortedCorrectly++;
         //* remove the question from the list
-        this.removeQuestion(this.draggedQuestion, this.quizQuestions);
-        this.removeQuestion(answer, this.quizAnswers);
+        this.removeQuestion(this.draggedQuestion, this.quizConcepts);
+        this.removeQuestion(answer, this.quizDefinitions);
       } else {
         alert("Incorrect match. Try again.");
       }
