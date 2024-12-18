@@ -5,7 +5,7 @@
         <div class="d-flex flex-column border border-dark p-3 mb-3 rounded-2">
           <h4 class="fw-bold">Select a type</h4>
           <p class="fw-bold">
-            Here you can select the specific kind of study guide.
+            Here you can select the specific kind of study method.
           </p>
           <div class="dropdown text-center">
             <button
@@ -14,7 +14,7 @@
               data-bs-toggle="dropdown"
               aria-expanded="false"
             >
-              Select Study Guide Type
+              {{ selectedMethod || "Select a Method" }}
             </button>
             <ul class="dropdown-menu">
               <a
@@ -49,7 +49,6 @@
                 />
               </svg>
             </button>
-
             <h2 for="chapters" class="form-label fw-bold">
               Chapter {{ currentChapter + 1 }} - {{ chapters.length }}
             </h2>
@@ -68,10 +67,10 @@
           </div>
           <h3 class="fw-bold my-3">Concepts and Definitions</h3>
           <p class="fst-italic my-3 text-start">
-            Here you can input the concepts and definitions for the study guide.
-            You can add as many as you like. Remember, this can be a study guide
-            for textbook chapters, sections, articles, or any facts that you
-            would like to learn through structured practice.
+            Here you can input the concepts and definitions for the study
+            session. You can add as many as you like. Remember, this can be a
+            study guide for textbook chapters, sections, articles, or any facts
+            that you would like to learn through structured practice.
           </p>
           <form>
             <div
@@ -108,7 +107,7 @@
               <button
                 @click.prevent="addQuestion()"
                 type="add"
-                class="btn btn-success rounded-3"
+                class="btn btn-success rounded-3 rounded-circle p-2"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -128,6 +127,23 @@
               </button>
             </div>
           </form>
+          <button
+            @click="downloadChapter()"
+            class="btn btn-lg btn-light text-dark fw-bold"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="25"
+              height="25"
+              fill="currentColor"
+              class="bi bi-file-earmark-arrow-down-fill"
+              viewBox="0 0 16 16"
+            >
+              <path
+                d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1m-1 4v3.793l1.146-1.147a.5.5 0 0 1 .708.708l-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 0 1 .708-.708L7.5 11.293V7.5a.5.5 0 0 1 1 0"
+              />
+            </svg>
+          </button>
         </div>
       </div>
       <div class="col p-3 mb-2 border border-dark rounded-2">
@@ -228,23 +244,22 @@
               </div>
             </div>
           </div>
-          <p class="fst-italic fs-5 text-center">
-            Time Remaining {{ timerDisplay }}
-          </p>
-          <div class="d-flex justify-content-center">
-            <button class="btn btn-primary mx-2" @click="startQuiz()">
-              Start Quiz
-            </button>
-            <button class="btn btn-danger" @click="stopQuiz()">
-              Stop Quiz
-            </button>
-          </div>
+        </div>
+        <p class="fst-italic fs-5 text-center">
+          Time Remaining {{ timerDisplay }}
+        </p>
+        <div class="d-flex justify-content-center">
+          <button class="btn btn-primary mx-2" @click="startQuiz()">
+            Start Quiz
+          </button>
+          <button class="btn btn-danger" @click="stopQuiz()">Stop Quiz</button>
         </div>
       </div>
     </div>
   </div>
 </template>
 <script>
+import { jsPDF } from "jspdf";
 // @ is an alias to /src
 export default {
   name: "StudyGuideHomeView",
@@ -254,6 +269,7 @@ export default {
       quizDefinitions: [], //* this will be the randomized definitions
       quizConcepts: [], //* this will be the randomized concepts
       methodsAvailable: [
+        { id: "fillInTheBlank", name: "Fill in the Blank", selected: false },
         { id: "flashCards", name: "Flash Cards", selected: false },
         { id: "multipleChoice", name: "Multiple Choice", selected: false },
         { id: "dragAndDrop", name: "Drag and Drop", selected: false },
@@ -487,6 +503,28 @@ export default {
       if (index > -1) {
         arrayToRemoveFrom.splice(index, 1);
       }
+    },
+    downloadChapter() {
+      const doc = new jsPDF({ format: "letter", orientation: "portrait" });
+      doc.setFont("helvetica", "bold");
+
+      doc.setFontSize(16);
+      doc.text(this.chapters[this.currentChapter].name + "\n", 10, 10);
+
+      // Get the definitions and format them
+      const definitions = this.chapters[
+        this.currentChapter
+      ].conceptsAndDefinitions
+        .map((qa) => {
+          return `${qa.question} - ${qa.answer}`;
+        })
+        .join("\n\n"); // Add double newlines for better spacing
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(12);
+      // Split text into lines to fit within the page width
+      const lines = doc.splitTextToSize(definitions, 180);
+      doc.text(lines, 10, 20);
+      doc.save(`chapter-${this.currentChapter + 1}.pdf`);
     },
   },
 };
