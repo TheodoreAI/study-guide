@@ -153,20 +153,23 @@
               </svg>
             </button>
           </div>
-          <div v-show="audioControls">
+          <div
+            v-if="audioControls"
+            class="d-flex flex-column justify-content-center"
+          >
             <p>
               Studying with a signal noise or chewing gum can help you focus.
             </p>
             <p>Would you like to study with a background noise?</p>
-            <div class="d-flex justify-content-start p-3">
+            <div class="d-flex justify-content-start">
               <div class="dropdown text-center">
                 <button
-                  class="btn btn-info dropdown-toggle"
+                  class="btn btn-secondary dropdown-toggle"
                   type="button"
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
                 >
-                  Select Signal
+                  {{ selectedSignalName || "Select a Signal" }}
                 </button>
                 <ul class="dropdown-menu">
                   <a
@@ -179,12 +182,7 @@
                 </ul>
               </div>
             </div>
-            <label class="form-label">Add your own audio</label>
-            <input type="file" accept="audio/*" />
-            <audio class="d-flex fs-5" controls loop>
-              <source :src="selectedSignal" type="audio/ogg" />
-              Your browser does not support the audio element.
-            </audio>
+            <audio :src="selectedSignal" class="py-3" controls loop></audio>
           </div>
         </div>
         <h3 class="fw-bold text-center">
@@ -229,7 +227,6 @@
             <button class="btn btn-primary mx-2" @click="startQuiz()">
               Start Quiz
             </button>
-
             <button class="btn btn-danger" @click="stopQuiz()">
               Stop Quiz
             </button>
@@ -302,28 +299,29 @@ export default {
       ],
       signalsAvailable: [
         {
-          id: "whiteNoise",
-          name: "White Noise",
+          id: "pencil",
+          name: "Pencil",
           selected: false,
-          path: "../assets/waves-breaking.mp3",
+          path: require("../assets/pencil.mp3"),
         },
         {
           id: "waves",
           name: "Waves",
           selected: false,
-          path: "../assets/waves-breaking.mp3",
+          path: require("../assets/waves-breaking.mp3"),
         },
         {
           id: "rain",
           name: "Rain",
           selected: false,
-          path: "../assets/rain.mp3",
+          path: require("../assets/rain.mp3"),
         },
       ], //* https://pixabay.com/sound-effects/search/waves/
+      selectedSignalName: "",
       currentChapter: 0,
       selectedMethod: "Drag and Drop",
       audioControls: false,
-      selectedSignal: "../assets/waves-breaking.mp3",
+      selectedSignal: require("../assets/waves-breaking.mp3"),
       draggedQuestion: null,
       numSortedCorrectly: 0,
       numToSort: 0,
@@ -333,7 +331,7 @@ export default {
     };
   },
   methods: {
-    chooseMethod(method) {
+    async chooseMethod(method) {
       this.methodsAvailable.forEach((m) => {
         if (m.id === method) {
           m.selected = true;
@@ -346,6 +344,7 @@ export default {
         if (s.id === signal) {
           s.selected = true;
           this.selectedSignal = s.path;
+          this.selectedSignalName = s.name;
         }
       });
     },
