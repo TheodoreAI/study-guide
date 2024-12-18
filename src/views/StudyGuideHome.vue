@@ -88,7 +88,7 @@
                     class="form-control"
                     :id="q.id"
                     aria-describedby=""
-                    v-model="q.question"
+                    v-model="q.concept"
                   />
                 </div>
                 <div class="col align-self-center">
@@ -98,7 +98,7 @@
                     class="form-control"
                     :id="q.id"
                     aria-describedby=""
-                    v-model="q.answer"
+                    v-model="q.definition"
                   />
                 </div>
               </div>
@@ -238,7 +238,7 @@
         <h3 class="fw-bold text-center">
           {{ selectedMethod }}
         </h3>
-        <div v-if="selectedMethod === 'Drag and Drop'">
+        <div v-if="selectedMethod === 'Drag and Drop' && quizStarted">
           <p class="fst-italic">Drag and Drop Concepts and Definitions</p>
           <div class="d-flex justify-content-end fw-bold">
             {{ numSortedCorrectly }} / {{ numToSort }}
@@ -252,7 +252,7 @@
                 draggable="true"
                 @dragstart="onDragStart($event, question)"
               >
-                <p class="card-text">{{ question.question }}</p>
+                <p class="card-text">{{ question.concept }}</p>
               </div>
             </div>
             <div class="col">
@@ -263,7 +263,36 @@
                 @dragover="onDragOver($event)"
                 @drop="onDrop($event, answer)"
               >
-                <p class="card-text">{{ answer.answer }}</p>
+                <p class="card-text">{{ answer.definition }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-else-if="selectedMethod === 'Fill in the Blank' && quizStarted">
+          <p class="fst-italic">Fill in the Blank using the writing pen.</p>
+          <div
+            v-for="(a, index) in quizDefinitions"
+            :key="a.id"
+            class="border border-dark rounded-2 p-2 my-2 text-center"
+          >
+            <div class="row p-2">
+              <div class="col">
+                <p class="fs-5">{{ a.definition }}</p>
+              </div>
+              <div class="col input-group input-group-lg">
+                <input
+                  type="form-control"
+                  v-model="fillInTheBlank[index]"
+                  required
+                />
+              </div>
+              <div class="col my-auto">
+                <input
+                  type="submit"
+                  class="btn btn-primary"
+                  @click="checkConcept(a, fillInTheBlank[index])"
+                  value="Check"
+                />
               </div>
             </div>
           </div>
@@ -288,8 +317,10 @@ export default {
   name: "StudyGuideHomeView",
   data() {
     return {
+      studyGuideMode: "easy", //* This can change to 'hard' for case-sensitive comparison
+      fillInTheBlank: [], //* ANOTHER TYPE OF STUDY METHOD 1
       quizStarted: false,
-      quizDefinitions: [], //* this will be the randomized definitions
+      quizDefinitions: [], //* ANOTHER TYPE OF STUDY METHOD 2 - this will be the randomized definitions
       quizConcepts: [], //* this will be the randomized concepts
       methodsAvailable: [
         { id: "fillInTheBlank", name: "Fill in the Blank", selected: false },
@@ -304,40 +335,40 @@ export default {
           conceptsAndDefinitions: [
             {
               id: 0,
-              question: "Programming Language",
-              answer:
+              concept: "Programming Language",
+              definition:
                 "a written system of instructions that allows humans to communicate with computers",
               method: "flashCards",
             },
             {
               id: 1,
-              question: "Programming language specification",
-              answer:
+              concept: "Programming language specification",
+              definition:
                 "a documentation artifact that defines a programming language so that users and implementors can agree on what programs in that language mean.",
               method: "flashCards",
             },
             {
               id: 2,
-              question: "Python",
-              answer:
+              concept: "Python",
+              definition:
                 "a high-level, interpreted, interactive, and object-oriented scripting language.",
             },
             {
               id: 3,
-              question: "Java",
-              answer:
+              concept: "Java",
+              definition:
                 "a high-level, class-based, object-oriented programming language that is designed to have as few implementation dependencies as possible.",
             },
             {
               id: 4,
-              question: "JavaScript",
-              answer:
+              concept: "JavaScript",
+              definition:
                 "a high-level, often just-in-time compiled, and multi-paradigm programming language.",
             },
             {
               id: 5,
-              question: "OpenGL",
-              answer:
+              concept: "OpenGL",
+              definition:
                 "a cross-language, cross-platform application programming interface for rendering 2D and 3D vector graphics.",
             },
           ],
@@ -367,10 +398,10 @@ export default {
       ], //* https://pixabay.com/sound-effects/search/waves/
       selectedSignalName: "",
       currentChapter: 0,
-      selectedMethod: "Drag and Drop",
+      selectedMethod: "Fill in the Blank",
       audioControls: false,
       selectedSignal: require("../assets/waves-breaking.mp3"),
-      draggedQuestion: null,
+      draggedconcept: null,
       numSortedCorrectly: 0,
       numToSort: 0,
       timer: null,
@@ -399,8 +430,8 @@ export default {
     addQuestion() {
       this.chapters[this.currentChapter].conceptsAndDefinitions.push({
         id: this.chapters[this.currentChapter].conceptsAndDefinitions.length,
-        question: "",
-        answer: "",
+        concept: "",
+        definition: "",
         method: this.selectedMethod,
       });
     },
@@ -458,8 +489,8 @@ export default {
       return array;
     },
     stopQuiz() {
-      this.startTimer(0);
       this.quizStarted = false;
+      this.startTimer(0);
     },
     startTimer(minutes) {
       if (minutes === 0) {
@@ -543,7 +574,7 @@ export default {
         this.currentChapter
       ].conceptsAndDefinitions
         .map((qa) => {
-          return `${qa.question} - ${qa.answer}`;
+          return `${qa.concept} - ${qa.definition}`;
         })
         .join("\n\n"); // Add double newlines for better spacing
       doc.setFont("helvetica", "normal");
@@ -552,6 +583,25 @@ export default {
       const lines = doc.splitTextToSize(definitions, 180);
       doc.text(lines, 10, 20);
       doc.save(`chapter-${this.currentChapter + 1}.pdf`);
+    },
+    checkConcept(answer, inputtedConcept) {
+      //* lets use lowercase for comparison in easy mode
+      if (this.studyGuideMode === "easy") {
+        if (answer.concept.toLowerCase() === inputtedConcept.toLowerCase()) {
+          alert("Correct!");
+          //* remove the question from the list
+          this.removeQuestion(answer, this.quizDefinitions);
+          this.fillInTheBlank = [];
+        } else {
+          alert("Incorrect. Try again.");
+        }
+      } else {
+        if (answer.concept === inputtedConcept) {
+          alert("Correct!");
+        } else {
+          alert("Incorrect. Try again.");
+        }
+      }
     },
   },
 };
