@@ -125,25 +125,48 @@
                   />
                 </svg>
               </button>
+              <button
+                @click.prevent="popQuestion()"
+                type="remove"
+                class="btn btn-danger rounded-3 rounded-circle p-2 mx-2"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  fill="currentColor"
+                  class="bi bi-dash-circle"
+                  viewBox="0 0 16 16"
+                >
+                  <path
+                    d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"
+                  />
+                  <path
+                    d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8"
+                  />
+                </svg>
+              </button>
             </div>
           </form>
-          <button
-            @click="downloadChapter()"
-            class="btn btn-lg btn-light text-dark fw-bold"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="25"
-              height="25"
-              fill="currentColor"
-              class="bi bi-file-earmark-arrow-down-fill"
-              viewBox="0 0 16 16"
+          <div class="d-flex justify-content-end">
+            <button
+              @click="downloadChapter()"
+              class="btn btn-lg btn-light text-dark fw-bold"
             >
-              <path
-                d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1m-1 4v3.793l1.146-1.147a.5.5 0 0 1 .708.708l-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 0 1 .708-.708L7.5 11.293V7.5a.5.5 0 0 1 1 0"
-              />
-            </svg>
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="25"
+                height="25"
+                fill="currentColor"
+                class="bi bi-file-earmark-arrow-down-fill"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1m-1 4v3.793l1.146-1.147a.5.5 0 0 1 .708.708l-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 0 1 .708-.708L7.5 11.293V7.5a.5.5 0 0 1 1 0"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
       <div class="col p-3 mb-2 border border-dark rounded-2">
@@ -380,6 +403,10 @@ export default {
         answer: "",
         method: this.selectedMethod,
       });
+    },
+    popQuestion() {
+      //* lets remove the last question
+      this.chapters[this.currentChapter].conceptsAndDefinitions.pop();
     },
     toggleAudioControls() {
       this.audioControls = !this.audioControls;
