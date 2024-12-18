@@ -4,6 +4,27 @@
       <div class="col-6 text-center">
         <div class="border border-dark rounded-2 mb-2 text-start p-3">
           <div class="d-flex justify-content-between">
+            <button
+              @click="addChapter()"
+              class="btn btn-light text-dark fw-bold my-0 py-0"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="25"
+                height="25"
+                fill="currentColor"
+                class="bi bi-plus-circle"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"
+                />
+                <path
+                  d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"
+                />
+              </svg>
+            </button>
+
             <h2 for="chapters" class="form-label fw-bold">
               Chapter {{ currentChapter + 1 }} - {{ chapters.length }}
             </h2>
@@ -17,23 +38,15 @@
                 <li>
                   <a @click="nextChapter()" class="page-link" href="#">Next</a>
                 </li>
-                <li>
-                  <a
-                    @click="addChapter()"
-                    class="page-link bg-success text-light rounded-1"
-                    href="#"
-                    >Add +</a
-                  >
-                </li>
               </ul>
             </nav>
           </div>
-          <h3 class="fw-bold">Questions and Answers</h3>
+          <h3 class="fw-bold my-3">Questions and Answers</h3>
           <p class="fst-italic">
             Here you can input the questions and answers for the study guide.
             You can add as many questions as you like.
           </p>
-          <form @submit.prevent="createStudyMethod()">
+          <form>
             <div
               class="mb-3"
               v-for="(q, i) in chapters[currentChapter].questionsAndAnswers"
@@ -66,9 +79,9 @@
             </div>
             <div class="d-flex justify-content-center my-3 py-3">
               <button
-                @click="addQuestion()"
+                @click.prevent="addQuestion()"
                 type="add"
-                class="btn btn-success rounded"
+                class="btn btn-success rounded-3"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -87,7 +100,7 @@
                 </svg>
               </button>
             </div>
-            <div class="col">
+            <div class="col border border-dark p-3 rounded-2">
               <h4 class="fw-bold">Select a type</h4>
               <p class="fw-bold">
                 Here you can select the specific kind of study guide.
@@ -179,7 +192,7 @@
         </h3>
         <div v-if="selectedMethod === 'Drag and Drop'">
           <p class="fst-italic">Drag and Drop Questions and Answers</p>
-          <div class="d-flex justify-content-end">
+          <div class="d-flex justify-content-end fw-bold">
             {{ numSortedCorrectly }} / {{ numToSort }}
           </div>
           <div class="row">
@@ -199,6 +212,9 @@
                 v-for="(answer, index) in quizAnswers"
                 :key="index"
                 class="card droppable border border-dark rounded-2 p-2 my-2"
+                :class="{
+                  'bg-success text-light': answer.id === draggedQuestion?.id,
+                }"
                 @dragover="onDragOver($event)"
                 @drop="onDrop($event, answer)"
               >
@@ -206,11 +222,18 @@
               </div>
             </div>
           </div>
-          <button class="btn btn-primary" @click="startQuiz()">
-            Start Quiz
-          </button>
-          <p>Time Remaining: {{ timerDisplay }}</p>
-          <button class="btn btn-danger" @click="stopQuiz()">Stop Quiz</button>
+          <p class="fst-italic fs-5 text-center">
+            Time Remaining {{ timerDisplay }}
+          </p>
+          <div class="d-flex justify-content-center">
+            <button class="btn btn-primary mx-2" @click="startQuiz()">
+              Start Quiz
+            </button>
+
+            <button class="btn btn-danger" @click="stopQuiz()">
+              Stop Quiz
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -245,7 +268,7 @@ export default {
               id: 1,
               question: "Programming language specification",
               answer:
-                " a documentation artifact that defines a programming language so that users and implementors can agree on what programs in that language mean.",
+                "a documentation artifact that defines a programming language so that users and implementors can agree on what programs in that language mean.",
               method: "flashCards",
             },
             {
@@ -356,35 +379,30 @@ export default {
       this.numToSort = this.quizAnswers.length;
       this.startTimer(this.minutes);
     },
-    shuffle(array) {
-      //* https://javascript.info/task/shuffle
-      let currentIndex = array.length,
-        randomIndex;
-      while (currentIndex !== 0) {
-        randomIndex = Math.floor(Math.random() * currentIndex);
-        currentIndex--;
-        [array[currentIndex], array[randomIndex]] = [
-          array[randomIndex],
-          array[currentIndex],
-        ];
-      }
-      return array;
-    },
     randomizeAndReturn() {
       let questionsAndAnswers = [];
       this.chapters[this.currentChapter].questionsAndAnswers.forEach((qa) => {
         questionsAndAnswers.push(qa);
       });
-      let randomizedAnswers = [];
+
       //* shuffle the answers
-      randomizedAnswers = this.shuffle(questionsAndAnswers);
-      let randomizedQuestions = [];
+      let randomizedAnswers = this.shuffle(questionsAndAnswers);
+
       //* shuffle the questions
-      randomizedQuestions = this.shuffle(questionsAndAnswers);
+      let randomizedQuestions = this.shuffle(questionsAndAnswers);
       return [randomizedAnswers, randomizedQuestions];
     },
+    shuffle(array) {
+      //* https://www.geeksforgeeks.org/shuffle-a-given-array-using-fisher-yates-shuffle-algorithm/#
+      for (let i = array.length - 1; i > 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1));
+        // swap array[i] with the element at random index
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    },
     stopQuiz() {
-      clearInterval(this.timer);
+      this.timer = null;
     },
     startTimer(minutes) {
       let min = minutes;
@@ -434,7 +452,6 @@ export default {
     },
     onDrop(event, answer) {
       event.preventDefault();
-      console.log("answer", answer, "question", this.draggedQuestion);
       if (this.draggedQuestion.id === answer.id) {
         alert("Correct match!");
         this.numSortedCorrectly++;
