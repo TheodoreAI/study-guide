@@ -133,6 +133,21 @@
       </div>
       <div class="col p-3 mb-2 border border-dark rounded-2">
         <div class="border border-3 rounded-2 p-3 fw-bold fst-italic">
+          <div v-show="selectedSignalName.length">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="currentColor"
+              class="bi bi-soundwave"
+              viewBox="0 0 16 16"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M8.5 2a.5.5 0 0 1 .5.5v11a.5.5 0 0 1-1 0v-11a.5.5 0 0 1 .5-.5m-2 2a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5m4 0a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5m-6 1.5A.5.5 0 0 1 5 6v4a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m8 0a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m-10 1A.5.5 0 0 1 3 7v2a.5.5 0 0 1-1 0V7a.5.5 0 0 1 .5-.5m12 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0V7a.5.5 0 0 1 .5-.5"
+              />
+            </svg>
+          </div>
           <div class="d-flex justify-content-end">
             <button @click="toggleAudioControls()" class="btn btn-info">
               Signal Learning
@@ -153,10 +168,7 @@
               </svg>
             </button>
           </div>
-          <div
-            v-if="audioControls"
-            class="d-flex flex-column justify-content-center"
-          >
+          <div v-show="audioControls">
             <p>
               Studying with a signal noise or chewing gum can help you focus.
             </p>
@@ -210,9 +222,6 @@
                 v-for="(answer, index) in quizAnswers"
                 :key="index"
                 class="card droppable border border-dark rounded-2 p-2 my-2"
-                :class="{
-                  'bg-success text-light': answer.id === draggedQuestion?.id,
-                }"
                 @dragover="onDragOver($event)"
                 @drop="onDrop($event, answer)"
               >
@@ -385,10 +394,10 @@ export default {
       });
 
       //* shuffle the answers
-      let randomizedAnswers = this.shuffle(questionsAndAnswers);
+      let randomizedAnswers = this.shuffle([...questionsAndAnswers]); //* create a shallow copy to avoid mutating the original array
 
       //* shuffle the questions
-      let randomizedQuestions = this.shuffle(questionsAndAnswers);
+      let randomizedQuestions = this.shuffle([...questionsAndAnswers]);
       return [randomizedAnswers, randomizedQuestions];
     },
     shuffle(array) {
@@ -401,9 +410,14 @@ export default {
       return array;
     },
     stopQuiz() {
-      this.timer = null;
+      this.startTimer(0);
     },
     startTimer(minutes) {
+      if (minutes === 0) {
+        clearInterval(this.timer);
+        this.timerDisplay = "00:00";
+        return;
+      }
       let min = minutes;
       let sec = 0;
       this.timerDisplay = `${min}:00`;
