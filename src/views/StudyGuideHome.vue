@@ -111,7 +111,9 @@
                   >
                 </ul>
               </div>
-              <button type="submit" class="btn btn-primary mt-3">Study</button>
+              <button type="submit" class="btn btn-primary mt-3">
+                Set Concepts
+              </button>
             </div>
           </form>
         </div>
@@ -180,31 +182,35 @@
           <div class="d-flex justify-content-end">
             {{ numSortedCorrectly }} / {{ numToSort }}
           </div>
-          <div
-            v-for="(question, index) in chapters[currentChapter]
-              .questionsAndAnswers"
-            :key="index"
-            class="row"
-          >
+          <div class="row">
             <div class="col">
               <div
-                class="draggable border border-dark rounded-2 p-2 bg-light"
+                v-for="(question, index) in quizQuestions"
+                :key="index"
+                class="card draggable border border-dark rounded-2 p-2 my-2"
                 draggable="true"
                 @dragstart="onDragStart($event, question)"
               >
-                {{ question.question }}
+                <p class="card-text">{{ question.question }}</p>
               </div>
             </div>
             <div class="col">
               <div
-                class="droppable border border-dark rounded-2 p-2"
+                v-for="(answer, index) in quizAnswers"
+                :key="index"
+                class="card droppable border border-dark rounded-2 p-2 my-2"
                 @dragover="onDragOver($event)"
-                @drop="onDrop($event, question)"
+                @drop="onDrop($event, answer)"
               >
-                {{ question.answer }}
+                <p class="card-text">{{ answer.answer }}</p>
               </div>
             </div>
           </div>
+          <button class="btn btn-primary" @click="startQuiz()">
+            Start Quiz
+          </button>
+          <p>Time Remaining: {{ timerDisplay }}</p>
+          <button class="btn btn-danger" @click="stopQuiz()">Stop Quiz</button>
         </div>
       </div>
     </div>
@@ -216,6 +222,7 @@ export default {
   name: "StudyGuideHomeView",
   data() {
     return {
+      quizAnswers: [], //* this will be the randomized answers
       quizQuestions: [], //* this will be the randomized questions
       methodsAvailable: [
         { id: "flashCards", name: "Flash Cards", selected: false },
@@ -241,6 +248,30 @@ export default {
                 " a documentation artifact that defines a programming language so that users and implementors can agree on what programs in that language mean.",
               method: "flashCards",
             },
+            {
+              id: 2,
+              question: "Python",
+              answer:
+                "a high-level, interpreted, interactive, and object-oriented scripting language.",
+            },
+            {
+              id: 3,
+              question: "Java",
+              answer:
+                "a high-level, class-based, object-oriented programming language that is designed to have as few implementation dependencies as possible.",
+            },
+            {
+              id: 4,
+              question: "JavaScript",
+              answer:
+                "a high-level, often just-in-time compiled, and multi-paradigm programming language.",
+            },
+            {
+              id: 5,
+              question: "OpenGL",
+              answer:
+                "a cross-language, cross-platform application programming interface for rendering 2D and 3D vector graphics.",
+            },
           ],
         },
         { id: 2, name: "Chapter 2", questionsAndAnswers: [] },
@@ -265,7 +296,7 @@ export default {
           selected: false,
           path: "../assets/rain.mp3",
         },
-      ],
+      ], //* https://pixabay.com/sound-effects/search/waves/
       currentChapter: 0,
       selectedMethod: "Drag and Drop",
       audioControls: false,
@@ -273,6 +304,9 @@ export default {
       draggedQuestion: null,
       numSortedCorrectly: 0,
       numToSort: 0,
+      timer: null,
+      timerDisplay: null,
+      minutes: 10,
     };
   },
   methods: {
@@ -312,7 +346,64 @@ export default {
         JSON.stringify(this.chapters[this.currentChapter].questionsAndAnswers)
       ).sort(() => Math.random() - 0.5);
       this.quizQuestions = newOrder;
-      this.numToSort = this.quizQuestions.length;
+      this.numToSort = this.quizAnswers.length;
+    },
+    startQuiz() {
+      //* randomize the questions
+      //* create a timer for the quiz
+      //* create a score for the quiz
+      [this.quizAnswers, this.quizQuestions] = this.randomizeAndReturn();
+      this.numToSort = this.quizAnswers.length;
+      this.startTimer(this.minutes);
+    },
+    shuffle(array) {
+      //* https://javascript.info/task/shuffle
+      let currentIndex = array.length,
+        randomIndex;
+      while (currentIndex !== 0) {
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+        [array[currentIndex], array[randomIndex]] = [
+          array[randomIndex],
+          array[currentIndex],
+        ];
+      }
+      return array;
+    },
+    randomizeAndReturn() {
+      let questionsAndAnswers = [];
+      this.chapters[this.currentChapter].questionsAndAnswers.forEach((qa) => {
+        questionsAndAnswers.push(qa);
+      });
+      let randomizedAnswers = [];
+      //* shuffle the answers
+      randomizedAnswers = this.shuffle(questionsAndAnswers);
+      let randomizedQuestions = [];
+      //* shuffle the questions
+      randomizedQuestions = this.shuffle(questionsAndAnswers);
+      return [randomizedAnswers, randomizedQuestions];
+    },
+    stopQuiz() {
+      clearInterval(this.timer);
+    },
+    startTimer(minutes) {
+      let min = minutes;
+      let sec = 0;
+      this.timerDisplay = `${min}:00`;
+      this.timer = setInterval(() => {
+        if (sec === 0) {
+          if (min === 0) {
+            clearInterval(this.timer);
+            return;
+          }
+          min--;
+          sec = 59;
+        } else {
+          sec--;
+        }
+        this.timerDisplay =
+          (min < 10 ? "0" + min : min) + ":" + (sec < 10 ? "0" + sec : sec);
+      }, 1000);
     },
     nextChapter() {
       if (this.currentChapter < this.chapters.length - 1) {
@@ -331,6 +422,8 @@ export default {
         questionsAndAnswers: [],
       });
     },
+    //* https://www.w3schools.com/html/html5_draganddrop.asp
+    //* https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API
     onDragStart(event, question) {
       this.draggedQuestion = question;
       event.dataTransfer.effectAllowed = "move";
@@ -345,11 +438,39 @@ export default {
       if (this.draggedQuestion.id === answer.id) {
         alert("Correct match!");
         this.numSortedCorrectly++;
+        //* remove the question from the list
+        this.removeQuestion(this.draggedQuestion, this.quizQuestions);
+        this.removeQuestion(answer, this.quizAnswers);
       } else {
         alert("Incorrect match. Try again.");
       }
       this.draggedQuestion = null;
     },
+    removeQuestion(question, arrayToRemoveFrom) {
+      const index = arrayToRemoveFrom.indexOf(question);
+      if (index > -1) {
+        arrayToRemoveFrom.splice(index, 1);
+      }
+    },
   },
 };
 </script>
+<style scoped>
+.draggable {
+  cursor: grab;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  height: 75px;
+}
+.droppable {
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  height: 75px;
+}
+.draggable:hover {
+  background-color: rgb(43, 186, 234);
+}
+</style>
