@@ -2,6 +2,31 @@
   <div class="container-fluid">
     <div class="row justify-content-between">
       <div v-if="!quizStarted" class="col-6 text-center">
+        <div class="d-flex flex-column border border-dark p-3 mb-3 rounded-2">
+          <h4 class="fw-bold">Select a type</h4>
+          <p class="fw-bold">
+            Here you can select the specific kind of study guide.
+          </p>
+          <div class="dropdown text-center">
+            <button
+              class="btn btn-primary dropdown-toggle"
+              type="button"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              Select Study Guide Type
+            </button>
+            <ul class="dropdown-menu">
+              <a
+                v-for="method in methodsAvailable"
+                :key="method.id"
+                class="dropdown-item"
+                @click="chooseMethod(method.id)"
+                >{{ method.name }}</a
+              >
+            </ul>
+          </div>
+        </div>
         <div class="border border-dark rounded-2 mb-2 text-start p-3">
           <div class="d-flex justify-content-between">
             <button
@@ -42,9 +67,11 @@
             </nav>
           </div>
           <h3 class="fw-bold my-3">Concepts and Definitions</h3>
-          <p class="fst-italic">
+          <p class="fst-italic my-3 text-start">
             Here you can input the concepts and definitions for the study guide.
-            You can add as many as you like.
+            You can add as many as you like. Remember, this can be a study guide
+            for textbook chapters, sections, articles, or any facts that you
+            would like to learn through structured practice.
           </p>
           <form>
             <div
@@ -100,46 +127,18 @@
                 </svg>
               </button>
             </div>
-            <div class="col border border-dark p-3 rounded-2">
-              <h4 class="fw-bold">Select a type</h4>
-              <p class="fw-bold">
-                Here you can select the specific kind of study guide.
-              </p>
-              <div class="dropdown text-start">
-                <button
-                  class="btn btn-primary dropdown-toggle"
-                  type="button"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
-                  Select Study Guide Type
-                </button>
-                <ul class="dropdown-menu">
-                  <a
-                    v-for="method in methodsAvailable"
-                    :key="method.id"
-                    class="dropdown-item"
-                    @click="chooseMethod(method.id)"
-                    >{{ method.name }}</a
-                  >
-                </ul>
-              </div>
-              <button type="submit" class="btn btn-primary mt-3">
-                Set Concepts
-              </button>
-            </div>
           </form>
         </div>
       </div>
       <div class="col p-3 mb-2 border border-dark rounded-2">
-        <div class="border border-3 rounded-2 p-3 fw-bold fst-italic">
+        <div class="border border-3 rounded-2 mb-2 p-3 fw-bold fst-italic">
           <div v-show="selectedSignalName.length">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="20"
               height="20"
               fill="currentColor"
-              class="bi bi-soundwave"
+              class="bi bi-soundwave soundwave-animation"
               viewBox="0 0 16 16"
             >
               <path
@@ -509,5 +508,20 @@ export default {
 }
 .draggable:hover {
   background-color: rgb(43, 186, 234);
+}
+.soundwave-animation {
+  animation: soundwave-animation 5s infinite;
+  border-radius: 50%;
+}
+
+@keyframes soundwave-animation {
+  from {
+    background-color: rgb(251, 249, 249);
+    transform: rotate(0deg);
+  }
+  to {
+    background-color: rgb(43, 186, 234);
+    transform: rotate(360deg);
+  }
 }
 </style>
