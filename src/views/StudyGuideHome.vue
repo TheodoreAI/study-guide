@@ -297,7 +297,7 @@
             </div>
           </div>
         </div>
-        <div>
+        <div v-show="selectedMethod === 'Handwriting' && quizStarted">
           <p class="fst-italic">
             Write the definition of the concept on a piece of paper.
           </p>
@@ -693,7 +693,7 @@ export default {
     },
   },
   async mounted() {
-    // await this.initializeEditor();
+    await this.initializeEditor();
   },
 };
 </script>
