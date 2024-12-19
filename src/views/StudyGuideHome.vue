@@ -297,6 +297,12 @@
             </div>
           </div>
         </div>
+        <div>
+          <p class="fst-italic">
+            Write the definition of the concept on a piece of paper.
+          </p>
+          <div id="editor-container" touch-action="none" ref="editor"></div>
+        </div>
         <p class="fst-italic fs-5 text-center">
           Time Remaining {{ timerDisplay }}
         </p>
@@ -312,6 +318,8 @@
 </template>
 <script>
 import { jsPDF } from "jspdf";
+import { Editor } from "iink-ts";
+
 // @ is an alias to /src
 export default {
   name: "StudyGuideHomeView",
@@ -323,6 +331,7 @@ export default {
       quizDefinitions: [], //* ANOTHER TYPE OF STUDY METHOD 2 - this will be the randomized definitions
       quizConcepts: [], //* this will be the randomized concepts
       methodsAvailable: [
+        { id: "handwriting", name: "Handwriting", selected: false },
         { id: "fillInTheBlank", name: "Fill in the Blank", selected: false },
         { id: "flashCards", name: "Flash Cards", selected: false },
         { id: "multipleChoice", name: "Multiple Choice", selected: false },
@@ -398,7 +407,7 @@ export default {
       ], //* https://pixabay.com/sound-effects/search/waves/
       selectedSignalName: "",
       currentChapter: 0,
-      selectedMethod: "Fill in the Blank",
+      selectedMethod: "Handwriting",
       audioControls: false,
       selectedSignal: require("../assets/waves-breaking.mp3"),
       draggedconcept: null,
@@ -407,6 +416,7 @@ export default {
       timer: null,
       timerDisplay: null,
       minutes: 10,
+      editor: null,
     };
   },
   methods: {
@@ -606,6 +616,30 @@ export default {
         }
       }
     },
+    initializeEditor() {
+      const options = {
+        configuration: {
+          offscreen: true,
+          type: "TEXT",
+          protocol: "WEBSOCKET",
+          apiVersion: "V4",
+          server: {
+            scheme: "https",
+            host: "webdemoapi.myscript.com",
+            applicationKey: process.env.VUE_APP_APPLICATION_KEY,
+            hmacKey: process.env.VUE_APP_HMAC_KEY,
+          },
+        },
+      };
+      const editor = new Editor(this.$refs.editor, options);
+      editor.initialize().catch((error) => {
+        console.error("Failed to initialize the editor", error);
+      });
+      this.editor = editor;
+    },
+  },
+  mounted() {
+    this.initializeEditor();
   },
 };
 </script>
@@ -641,5 +675,12 @@ export default {
     background-color: rgb(43, 186, 234);
     transform: rotate(360deg);
   }
+}
+#editor-container {
+  margin: auto;
+  width: 800px;
+  height: 600px;
+  border: 1px solid black;
+  border-radius: 5px;
 }
 </style>
