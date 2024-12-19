@@ -586,6 +586,9 @@ export default {
     },
     checkConcept(answer, inputtedConcept) {
       //* lets use lowercase for comparison in easy mode
+      if (answer === undefined || inputtedConcept === undefined) {
+        return;
+      }
       if (this.studyGuideMode === "easy") {
         if (answer.concept.toLowerCase() === inputtedConcept.toLowerCase()) {
           alert("Correct!");
