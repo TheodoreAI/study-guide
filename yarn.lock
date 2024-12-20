@@ -4591,6 +4591,13 @@ ignore@^5.2.0:
   resolved "https://registry.yarnpkg.com/ignore/-/ignore-5.2.4.tgz#a291c0c6178ff1b960befe47fcdec301674a6324"
   integrity sha512-MAb38BcSbH0eHNBxn7ql2NH/kX33OkB3lZ1BNdh7ENeRChHTYsTvWrMubiIAMNS2llXEEgZ1MUOBtXChP3kaFQ==
 
+iink-ts@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/iink-ts/-/iink-ts-2.0.1.tgz#d3b914e6e5ea248f84a5a72fb7a051983ca05abc"
+  integrity sha512-pMsy3Fg8uscenbjHwmbVSQfTA69pX194PYRyZ0mjy/hqJUq+cGPlDXQ+xwhwScAEG3PJsql6UZAystU/Q2dhGQ==
+  dependencies:
+    json-css "^1.5.6"
+
 import-fresh@^3.0.0, import-fresh@^3.2.1:
   version "3.3.0"
   resolved "https://registry.yarnpkg.com/import-fresh/-/import-fresh-3.3.0.tgz#37162c25fcb9ebaa2e6e53d5b4d88ce17d9e0c2b"
@@ -5417,6 +5424,11 @@ jsesc@~0.5.0:
   version "0.5.0"
   resolved "https://registry.yarnpkg.com/jsesc/-/jsesc-0.5.0.tgz#e7dee66e35d6fc16f710fe91d5cf69f70f08911d"
   integrity sha512-uZz5UnB7u4T9LvwmFqXii7pZSouaRPorGs5who1Ip7VO0wxanFvBL7GkM6dTHlgX+jhBApRetaWpnDabOeTcnA==
+
+json-css@^1.5.6:
+  version "1.5.6"
+  resolved "https://registry.yarnpkg.com/json-css/-/json-css-1.5.6.tgz#eb964f834a2e4eaa1bc2f698ff5db007a26c7c00"
+  integrity sha512-B/0T0OxZH9tSb93tXV6VOYtXqrPz/Vgz2QrCT/4NXen8HGElYkYr9V+8IrSVTMj/ftxa8cG1kcu7f3iAMlaFlQ==
 
 json-parse-better-errors@^1.0.2:
   version "1.0.2"

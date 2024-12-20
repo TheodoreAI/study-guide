@@ -5,7 +5,8 @@
         <div class="d-flex flex-column border border-dark p-3 mb-3 rounded-2">
           <h4 class="fw-bold">Select a type</h4>
           <p class="fw-bold">
-            Here you can select the specific kind of study method.
+            Here you can select the specific kind of study method you want to
+            engage in.
           </p>
           <div class="dropdown text-center">
             <button
@@ -276,17 +277,17 @@
             class="border border-dark rounded-2 p-2 my-2 text-center"
           >
             <div class="row p-2">
-              <div class="col">
+              <div class="col-6">
                 <p class="fs-5">{{ a.definition }}</p>
               </div>
-              <div class="col input-group input-group-lg">
+              <div class="col-3 input-group input-group-lg">
                 <input
                   type="form-control"
                   v-model="fillInTheBlank[index]"
                   required
                 />
               </div>
-              <div class="col my-auto">
+              <div class="col-3 my-auto">
                 <input
                   type="submit"
                   class="btn btn-primary"
@@ -296,6 +297,38 @@
               </div>
             </div>
           </div>
+        </div>
+        <div v-show="selectedMethod === 'Handwriting' && quizStarted">
+          <p class="fst-italic">
+            Write the name of the concept here. The system will check if you got
+            it right. You can use a stylus or your finger to write the answer.
+            It also works with a mouse or trackpad.
+          </p>
+          <div
+            class="border border-dark rounded-2 p-2 my-2 text-start w-50 mx-auto"
+          >
+            <div
+              class="d-flex justify-content-between p-3 m-3 border border-rounded"
+            >
+              <div>
+                {{ currentDefinition }}
+              </div>
+              <button class="btn btn-primary" @click="nextDefinition()">
+                Next
+              </button>
+            </div>
+            <p
+              class="rounded-3 text-center fw-bold bg-secondary text-light m-3"
+              :class="{
+                'bg-danger': handWrittenAnswer === 'Not quite',
+                'bg-success': handWrittenAnswer === 'Correct!',
+              }"
+            >
+              {{ handWrittenAnswer }}
+            </p>
+          </div>
+
+          <div id="editor-container" touch-action="none" ref="editor"></div>
         </div>
         <p class="fst-italic fs-5 text-center">
           Time Remaining {{ timerDisplay }}
@@ -312,20 +345,25 @@
 </template>
 <script>
 import { jsPDF } from "jspdf";
+import { Editor } from "iink-ts";
+
 // @ is an alias to /src
 export default {
   name: "StudyGuideHomeView",
   data() {
     return {
       studyGuideMode: "easy", //* This can change to 'hard' for case-sensitive comparison
+      handWrittenAnswer: "",
+      currentDefinitionIndex: 0,
+      currentConcept: "",
+      currentDefinition: "", //* ANOTHER TYPE OF STUDY METHOD 3
       fillInTheBlank: [], //* ANOTHER TYPE OF STUDY METHOD 1
       quizStarted: false,
       quizDefinitions: [], //* ANOTHER TYPE OF STUDY METHOD 2 - this will be the randomized definitions
       quizConcepts: [], //* this will be the randomized concepts
       methodsAvailable: [
+        { id: "handwriting", name: "Handwriting", selected: false },
         { id: "fillInTheBlank", name: "Fill in the Blank", selected: false },
-        { id: "flashCards", name: "Flash Cards", selected: false },
-        { id: "multipleChoice", name: "Multiple Choice", selected: false },
         { id: "dragAndDrop", name: "Drag and Drop", selected: false },
       ],
       chapters: [
@@ -335,46 +373,18 @@ export default {
           conceptsAndDefinitions: [
             {
               id: 0,
-              concept: "Programming Language",
+              concept: "C",
               definition:
-                "a written system of instructions that allows humans to communicate with computers",
-              method: "flashCards",
+                "a 'low-level' compiled language most commonly used to program operating systems.",
             },
             {
               id: 1,
-              concept: "Programming language specification",
-              definition:
-                "a documentation artifact that defines a programming language so that users and implementors can agree on what programs in that language mean.",
-              method: "flashCards",
-            },
-            {
-              id: 2,
-              concept: "Python",
-              definition:
-                "a high-level, interpreted, interactive, and object-oriented scripting language.",
-            },
-            {
-              id: 3,
               concept: "Java",
               definition:
-                "a high-level, class-based, object-oriented programming language that is designed to have as few implementation dependencies as possible.",
-            },
-            {
-              id: 4,
-              concept: "JavaScript",
-              definition:
-                "a high-level, often just-in-time compiled, and multi-paradigm programming language.",
-            },
-            {
-              id: 5,
-              concept: "OpenGL",
-              definition:
-                "a cross-language, cross-platform application programming interface for rendering 2D and 3D vector graphics.",
+                "a high-level programming language developed by Sun Microsystems.",
             },
           ],
         },
-        { id: 2, name: "Chapter 2", conceptsAndDefinitions: [] },
-        { id: 3, name: "Chapter 3", conceptsAndDefinitions: [] },
       ],
       signalsAvailable: [
         {
@@ -398,15 +408,15 @@ export default {
       ], //* https://pixabay.com/sound-effects/search/waves/
       selectedSignalName: "",
       currentChapter: 0,
-      selectedMethod: "Fill in the Blank",
+      selectedMethod: "Handwriting",
       audioControls: false,
       selectedSignal: require("../assets/waves-breaking.mp3"),
-      draggedconcept: null,
       numSortedCorrectly: 0,
       numToSort: 0,
       timer: null,
       timerDisplay: null,
       minutes: 10,
+      editor: null,
     };
   },
   methods: {
@@ -606,6 +616,77 @@ export default {
         }
       }
     },
+    async initializeEditor() {
+      const options = {
+        configuration: {
+          offscreen: false,
+          type: "TEXT",
+          protocol: "WEBSOCKET",
+          apiVersion: "V4",
+          server: {
+            scheme: "https",
+            host: "webdemoapi.myscript.com",
+            applicationKey: process.env.VUE_APP_APPLICATION_KEY,
+            hmacKey: process.env.VUE_APP_HMAC_KEY,
+          },
+          recognition: {
+            type: "TEXT",
+            text: {
+              mimeTypes: ["text/plain"],
+            },
+          },
+        },
+      };
+      const editor = new Editor(this.$refs.editor, options);
+      await editor.initialize();
+
+      editor.events.addEventListener("exported", (event) => {
+        const exports = event.detail;
+        if (exports && exports["text/plain"]) {
+          if (
+            exports["text/plain"].toLowerCase() ===
+            this.currentConcept.toLowerCase()
+          ) {
+            this.handWrittenAnswer = "Correct!";
+          } else {
+            this.handWrittenAnswer = `Not quite -  ${exports["text/plain"]} - ${this.currentConcept}`;
+          }
+        }
+      });
+      this.editor = editor;
+    },
+    nextDefinition() {
+      if (
+        this.currentDefinitionIndex ===
+        this.chapters[this.currentChapter].conceptsAndDefinitions.length - 1
+      ) {
+        this.currentDefinitionIndex = 0;
+      } else {
+        this.currentDefinitionIndex += 1;
+      }
+      const currentQuestion =
+        this.chapters[this.currentChapter].conceptsAndDefinitions[
+          this.currentDefinitionIndex
+        ];
+      this.currentDefinition = currentQuestion.definition;
+      this.currentConcept = currentQuestion.concept;
+      this.handWrittenAnswer = "";
+    },
+    initHandwritingQuiz() {
+      this.currentDefinitionIndex = 0;
+      this.currentConcept =
+        this.chapters[this.currentChapter].conceptsAndDefinitions[
+          this.currentDefinitionIndex
+        ].concept;
+      this.currentDefinition =
+        this.chapters[this.currentChapter].conceptsAndDefinitions[
+          this.currentDefinitionIndex
+        ].definition;
+    },
+  },
+  async mounted() {
+    await this.initializeEditor();
+    this.initHandwritingQuiz();
   },
 };
 </script>
@@ -641,5 +722,12 @@ export default {
     background-color: rgb(43, 186, 234);
     transform: rotate(360deg);
   }
+}
+#editor-container {
+  margin: auto;
+  width: 800px;
+  height: 600px;
+  border: 1px solid black;
+  border-radius: 5px;
 }
 </style>
