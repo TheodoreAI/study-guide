@@ -5,7 +5,8 @@
         <div class="d-flex flex-column border border-dark p-3 mb-3 rounded-2">
           <h4 class="fw-bold">Select a type</h4>
           <p class="fw-bold">
-            Here you can select the specific kind of study method.
+            Here you can select the specific kind of study method you want to
+            engage in.
           </p>
           <div class="dropdown text-center">
             <button
@@ -299,9 +300,13 @@
         </div>
         <div v-show="selectedMethod === 'Handwriting' && quizStarted">
           <p class="fst-italic">
-            Write the definition of the concept on a piece of paper.
+            Write the name of the concept here. The system will check if you got
+            it right. You can use a stylus or your finger to write the answer.
+            It also works with a mouse or trackpad.
           </p>
-          <div class="border border-dark rounded-2 p-2 my-2 text-center">
+          <div
+            class="border border-dark rounded-2 p-2 my-2 text-start w-50 mx-auto"
+          >
             <div
               class="d-flex justify-content-between p-3 m-3 border border-rounded"
             >
@@ -359,8 +364,6 @@ export default {
       methodsAvailable: [
         { id: "handwriting", name: "Handwriting", selected: false },
         { id: "fillInTheBlank", name: "Fill in the Blank", selected: false },
-        { id: "flashCards", name: "Flash Cards", selected: false },
-        { id: "multipleChoice", name: "Multiple Choice", selected: false },
         { id: "dragAndDrop", name: "Drag and Drop", selected: false },
       ],
       chapters: [
@@ -370,46 +373,18 @@ export default {
           conceptsAndDefinitions: [
             {
               id: 0,
-              concept: "Programming Language",
+              concept: "C",
               definition:
-                "a written system of instructions that allows humans to communicate with computers",
-              method: "flashCards",
+                "a 'low-level' compiled language most commonly used to program operating systems.",
             },
             {
               id: 1,
-              concept: "Programming language specification",
-              definition:
-                "a documentation artifact that defines a programming language so that users and implementors can agree on what programs in that language mean.",
-              method: "flashCards",
-            },
-            {
-              id: 2,
-              concept: "Python",
-              definition:
-                "a high-level, interpreted, interactive, and object-oriented scripting language.",
-            },
-            {
-              id: 3,
               concept: "Java",
               definition:
-                "a high-level, class-based, object-oriented programming language that is designed to have as few implementation dependencies as possible.",
-            },
-            {
-              id: 4,
-              concept: "JavaScript",
-              definition:
-                "a high-level, often just-in-time compiled, and multi-paradigm programming language.",
-            },
-            {
-              id: 5,
-              concept: "OpenGL",
-              definition:
-                "a cross-language, cross-platform application programming interface for rendering 2D and 3D vector graphics.",
+                "a high-level programming language developed by Sun Microsystems.",
             },
           ],
         },
-        { id: 2, name: "Chapter 2", conceptsAndDefinitions: [] },
-        { id: 3, name: "Chapter 3", conceptsAndDefinitions: [] },
       ],
       signalsAvailable: [
         {
@@ -668,32 +643,50 @@ export default {
       editor.events.addEventListener("exported", (event) => {
         const exports = event.detail;
         if (exports && exports["text/plain"]) {
-          console.log(exports["text/plain"], this.currentConcept);
           if (
             exports["text/plain"].toLowerCase() ===
             this.currentConcept.toLowerCase()
           ) {
             this.handWrittenAnswer = "Correct!";
-            this.nextDefinition();
           } else {
-            this.handWrittenAnswer = `Not quite ${exports["text/plain"]}`;
+            this.handWrittenAnswer = `Not quite -  ${exports["text/plain"]} - ${this.currentConcept}`;
           }
         }
       });
       this.editor = editor;
     },
     nextDefinition() {
-      this.currentDefinitionIndex += 1;
+      if (
+        this.currentDefinitionIndex ===
+        this.chapters[this.currentChapter].conceptsAndDefinitions.length - 1
+      ) {
+        this.currentDefinitionIndex = 0;
+      } else {
+        this.currentDefinitionIndex += 1;
+      }
       const currentQuestion =
         this.chapters[this.currentChapter].conceptsAndDefinitions[
           this.currentDefinitionIndex
         ];
       this.currentDefinition = currentQuestion.definition;
       this.currentConcept = currentQuestion.concept;
+      this.handWrittenAnswer = "";
+    },
+    initHandwritingQuiz() {
+      this.currentDefinitionIndex = 0;
+      this.currentConcept =
+        this.chapters[this.currentChapter].conceptsAndDefinitions[
+          this.currentDefinitionIndex
+        ].concept;
+      this.currentDefinition =
+        this.chapters[this.currentChapter].conceptsAndDefinitions[
+          this.currentDefinitionIndex
+        ].definition;
     },
   },
   async mounted() {
     await this.initializeEditor();
+    this.initHandwritingQuiz();
   },
 };
 </script>
