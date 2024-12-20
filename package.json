@@ -1,10 +1,11 @@
 {
-  "name": "rally-racing",
+  "name": "study-guide",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
+    "deploy": "gh-pages -d dist",
     "test:unit": "vue-cli-service test:unit",
     "lint": "vue-cli-service lint"
   },
@@ -12,6 +13,8 @@
     "bootstrap": "^5.2.3",
     "core-js": "^3.8.3",
     "gh-pages": "^5.0.0",
+    "iink-ts": "^2.0.1",
+    "jspdf": "^2.5.2",
     "vue": "^3.2.13",
     "vue-router": "^4.0.3",
     "vuex": "^4.0.0"
