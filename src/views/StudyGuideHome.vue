@@ -277,17 +277,18 @@
             class="border border-dark rounded-2 p-2 my-2 text-center"
           >
             <div class="row p-2">
-              <div class="col-6">
-                <p class="fs-5">{{ a.definition }}</p>
+              <div class="col-5">
+                <p class="fs-5 text-start">{{ a.definition }}</p>
               </div>
-              <div class="col-3 input-group input-group-lg">
+              <div class="col-3 my-auto">
                 <input
+                  class="form-control"
                   type="form-control"
                   v-model="fillInTheBlank[index]"
                   required
                 />
               </div>
-              <div class="col-3 my-auto">
+              <div class="col my-auto">
                 <input
                   type="submit"
                   class="btn btn-primary"
@@ -408,7 +409,7 @@ export default {
       ], //* https://pixabay.com/sound-effects/search/waves/
       selectedSignalName: "",
       currentChapter: 0,
-      selectedMethod: "Handwriting",
+      selectedMethod: "Fill in the Blank",
       audioControls: false,
       selectedSignal: require("../assets/waves-breaking.mp3"),
       numSortedCorrectly: 0,
@@ -619,7 +620,7 @@ export default {
     async initializeEditor() {
       const options = {
         configuration: {
-          offscreen: false,
+          offscreen: true,
           type: "TEXT",
           protocol: "WEBSOCKET",
           apiVersion: "V4",
@@ -648,6 +649,7 @@ export default {
             this.currentConcept.toLowerCase()
           ) {
             this.handWrittenAnswer = "Correct!";
+            this.currentConcept = "";
           } else {
             this.handWrittenAnswer = `Not quite -  ${exports["text/plain"]} - ${this.currentConcept}`;
           }
