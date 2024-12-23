@@ -574,6 +574,7 @@ export default {
       }
     },
     downloadChapter() {
+      //* usage of a library is not required, but it is a good example of how to use a library
       const doc = new jsPDF({ format: "letter", orientation: "portrait" });
       doc.setFont("helvetica", "bold");
 
