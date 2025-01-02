@@ -1,0 +1,19 @@
+[
+    {
+      "id": 1,
+      "name": "Chapter 1",
+      "conceptsAndDefinitions": [
+        {
+          "id": 0,
+          "concept": "C",
+          "definition": "a 'low-level' compiled language most commonly used to program operating systems."
+        },
+        {
+          "id": 1,
+          "concept": "Java",
+          "definition": "a high-level programming language developed by Sun Microsystems."
+        }
+      ]
+    }
+  ]
+  

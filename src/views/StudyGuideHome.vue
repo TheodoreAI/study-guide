@@ -30,26 +30,46 @@
         </div>
         <div class="border border-dark rounded-2 mb-2 text-start p-3">
           <div class="d-flex justify-content-between">
-            <button
-              @click="addChapter()"
-              class="btn btn-light text-dark fw-bold my-0 py-0"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="25"
-                height="25"
-                fill="currentColor"
-                class="bi bi-plus-circle"
-                viewBox="0 0 16 16"
+            <div class="">
+              <button
+                @click="addChapter()"
+                class="btn btn-light bg-secondary text-dark fw-bold p-2"
               >
-                <path
-                  d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"
-                />
-                <path
-                  d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"
-                />
-              </svg>
-            </button>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="25"
+                  height="25"
+                  fill="currentColor"
+                  class="bi bi-plus-circle text-light"
+                  viewBox="0 0 16 16"
+                >
+                  <path
+                    d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"
+                  />
+                  <path
+                    d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"
+                  />
+                </svg>
+              </button>
+              <button
+                class="btn btn-light bg-success text-dark fw-bold p-2 mx-2"
+                @click="saveDataIntoLocalJson()"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  fill="currentColor"
+                  class="bi bi-floppy2-fill"
+                  viewBox="0 0 16 16"
+                >
+                  <path d="M12 2h-2v3h2z" />
+                  <path
+                    d="M1.5 0A1.5 1.5 0 0 0 0 1.5v13A1.5 1.5 0 0 0 1.5 16h13a1.5 1.5 0 0 0 1.5-1.5V2.914a1.5 1.5 0 0 0-.44-1.06L14.147.439A1.5 1.5 0 0 0 13.086 0zM4 6a1 1 0 0 1-1-1V1h10v4a1 1 0 0 1-1 1zM3 9h10a1 1 0 0 1 1 1v5H2v-5a1 1 0 0 1 1-1"
+                  />
+                </svg>
+              </button>
+            </div>
             <h2 for="chapters" class="form-label fw-bold">
               Chapter {{ currentChapter + 1 }} - {{ chapters.length }}
             </h2>
@@ -277,11 +297,12 @@
             class="border border-dark rounded-2 p-2 my-2 text-center"
           >
             <div class="row p-2">
-              <div class="col">
-                <p class="fs-5">{{ a.definition }}</p>
+              <div class="col-5">
+                <p class="fs-5 text-start">{{ a.definition }}</p>
               </div>
-              <div class="col input-group input-group-lg">
+              <div class="col-3 my-auto">
                 <input
+                  class="form-control"
                   type="form-control"
                   v-model="fillInTheBlank[index]"
                   required
@@ -346,7 +367,7 @@
 <script>
 import { jsPDF } from "jspdf";
 import { Editor } from "iink-ts";
-
+import chaptersContent from "../data/chapters.json";
 // @ is an alias to /src
 export default {
   name: "StudyGuideHomeView",
@@ -408,7 +429,7 @@ export default {
       ], //* https://pixabay.com/sound-effects/search/waves/
       selectedSignalName: "",
       currentChapter: 0,
-      selectedMethod: "Handwriting",
+      selectedMethod: "Fill in the Blank",
       audioControls: false,
       selectedSignal: require("../assets/waves-breaking.mp3"),
       numSortedCorrectly: 0,
@@ -573,6 +594,7 @@ export default {
       }
     },
     downloadChapter() {
+      //* usage of a library is not required, but it is a good example of how to use a library
       const doc = new jsPDF({ format: "letter", orientation: "portrait" });
       doc.setFont("helvetica", "bold");
 
@@ -619,7 +641,7 @@ export default {
     async initializeEditor() {
       const options = {
         configuration: {
-          offscreen: false,
+          offscreen: true,
           type: "TEXT",
           protocol: "WEBSOCKET",
           apiVersion: "V4",
@@ -648,6 +670,7 @@ export default {
             this.currentConcept.toLowerCase()
           ) {
             this.handWrittenAnswer = "Correct!";
+            this.currentConcept = "";
           } else {
             this.handWrittenAnswer = `Not quite -  ${exports["text/plain"]} - ${this.currentConcept}`;
           }
@@ -683,10 +706,17 @@ export default {
           this.currentDefinitionIndex
         ].definition;
     },
+    saveDataIntoLocalJson() {
+      //* save the data to local storage
+      localStorage.setItem("chapters", JSON.stringify(this.chapters));
+    },
   },
   async mounted() {
     await this.initializeEditor();
     this.initHandwritingQuiz();
+    localStorage.getItem("chapters")
+      ? (this.chapters = JSON.parse(localStorage.getItem("chapters")))
+      : chaptersContent;
   },
 };
 </script>
